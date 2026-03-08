@@ -1,41 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
-import { Card, Badge, ProgressBar, formatCurrency, formatDate, Btn, Input, Select, Textarea } from '../components/UI.jsx';
-import { PRIORITIES, STATUSES, CATEGORIES } from '../components/UI.jsx';
+import { Card, Badge, ProgressBar, formatCurrency, formatDate, Btn, Input, Select, Textarea } from '../../../components/UI.jsx';
+import { useConfig } from '../context.jsx';
 import { ArrowLeft, Edit2, Trash2, Check, X, Plus, Package, DollarSign, Calendar, Wrench } from 'lucide-react';
-
-function MaterialRow({ mat, index, editing, onChange, onDelete }) {
-  if (!editing) return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--border)' }}>
-      <div style={{ width: 18, height: 18, borderRadius: 4, border: `2px solid ${mat.purchased ? 'var(--green)' : 'var(--border-dark)'}`, background: mat.purchased ? 'var(--green)' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        {mat.purchased && <Check size={11} color="white" />}
-      </div>
-      <span style={{ flex: 1, fontSize: 13, color: mat.purchased ? 'var(--muted)' : 'var(--charcoal)', textDecoration: mat.purchased ? 'line-through' : 'none' }}>{mat.name}</span>
-      <span style={{ fontSize: 12, color: 'var(--muted)' }}>{mat.quantity}</span>
-      <span style={{ fontSize: 13, fontWeight: 500, color: 'var(--charcoal)', minWidth: 60, textAlign: 'right' }}>{formatCurrency(mat.cost)}</span>
-    </div>
-  );
-
-  return (
-    <div style={{ display: 'flex', gap: 8, padding: '6px 0', alignItems: 'center' }}>
-      <input type="checkbox" checked={mat.purchased} onChange={e => onChange(index, 'purchased', e.target.checked)} />
-      <input value={mat.name} onChange={e => onChange(index, 'name', e.target.value)} placeholder="Material name"
-        style={{ flex: 2, padding: '5px 8px', border: '1px solid var(--border-dark)', borderRadius: 6, fontSize: 13 }} />
-      <input value={mat.quantity} onChange={e => onChange(index, 'quantity', e.target.value)} placeholder="Qty"
-        style={{ flex: 1, padding: '5px 8px', border: '1px solid var(--border-dark)', borderRadius: 6, fontSize: 13 }} />
-      <input type="number" value={mat.cost} onChange={e => onChange(index, 'cost', parseFloat(e.target.value) || 0)} placeholder="Cost"
-        style={{ flex: 1, padding: '5px 8px', border: '1px solid var(--border-dark)', borderRadius: 6, fontSize: 13 }} />
-      <button onClick={() => onDelete(index)} style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', padding: 4 }}>
-        <X size={16} />
-      </button>
-    </div>
-  );
-}
 
 export default function ProjectDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { priorities, statuses, categories, priorityConfig, statusConfig, categoryLabels } = useConfig();
   const [project, setProject] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -43,51 +16,38 @@ export default function ProjectDetail() {
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
-    api.getProject(id).then(p => { setProject(p); setForm(p); setLoading(false); });
-  }, [id]);
+  useEffect(() => { api.getProject(id).then(p => { setProject(p); setForm(p); setLoading(false); }); }, [id]);
 
   const save = async () => {
     setSaving(true);
     const updated = await api.updateProject(id, form);
-    setProject(updated);
-    setForm(updated);
-    setSaving(false);
-    setEditing(false);
+    setProject(updated); setForm(updated); setSaving(false); setEditing(false);
   };
 
   const deleteProject = async () => {
-    if (!confirm('Delete this project? This cannot be undone.')) return;
+    if (!confirm('Delete this project?')) return;
     setDeleting(true);
     await api.deleteProject(id);
     navigate('/projects');
   };
 
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
-
   const addMaterial = () => setForm(f => ({ ...f, materials: [...(f.materials || []), { name: '', quantity: '1', cost: 0, purchased: false }] }));
-  const updateMaterial = (i, k, v) => setForm(f => {
-    const mats = [...f.materials];
-    mats[i] = { ...mats[i], [k]: v };
-    return { ...f, materials: mats };
-  });
+  const updateMaterial = (i, k, v) => setForm(f => { const m = [...f.materials]; m[i] = { ...m[i], [k]: v }; return { ...f, materials: m }; });
   const deleteMaterial = (i) => setForm(f => ({ ...f, materials: f.materials.filter((_, idx) => idx !== i) }));
 
   const toggleMaterialPurchased = async (i) => {
     const mats = [...project.materials];
     mats[i] = { ...mats[i], purchased: !mats[i].purchased };
     const updated = await api.updateProject(id, { materials: mats });
-    setProject(updated);
-    setForm(updated);
+    setProject(updated); setForm(updated);
   };
 
-  if (loading) return (
-    <div style={{ maxWidth: 800 }}>
-      <div style={{ height: 30, width: 120, marginBottom: 24 }} className="skeleton" />
-      <div style={{ height: 200 }} className="skeleton" />
-    </div>
-  );
+  const pLabel = (k) => priorityConfig[k]?.label || k;
+  const sLabel = (k) => statusConfig[k]?.label || k;
+  const cLabel = (k) => categoryLabels[k] || k.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
+  if (loading) return <div style={{ maxWidth: 800 }}><div style={{ height: 30, width: 120, marginBottom: 24 }} className="skeleton" /><div style={{ height: 200 }} className="skeleton" /></div>;
   if (!project) return <div>Project not found</div>;
 
   const totalMaterialCost = (project.materials || []).reduce((s, m) => s + (m.cost || 0), 0);
@@ -95,24 +55,18 @@ export default function ProjectDetail() {
 
   return (
     <div style={{ maxWidth: 860, animation: 'fadeIn 0.3s ease' }}>
-      {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 24 }}>
         <Btn variant="ghost" size="sm" onClick={() => navigate('/projects')} icon={<ArrowLeft size={15} />}>Back</Btn>
         <div style={{ flex: 1 }} />
         {editing ? (
-          <>
-            <Btn variant="secondary" size="sm" onClick={() => { setEditing(false); setForm(project); }} icon={<X size={14} />}>Cancel</Btn>
-            <Btn variant="amber" size="sm" onClick={save} disabled={saving} icon={<Check size={14} />}>{saving ? 'Saving...' : 'Save'}</Btn>
-          </>
+          <><Btn variant="secondary" size="sm" onClick={() => { setEditing(false); setForm(project); }} icon={<X size={14} />}>Cancel</Btn>
+          <Btn variant="amber" size="sm" onClick={save} disabled={saving} icon={<Check size={14} />}>{saving ? 'Saving…' : 'Save'}</Btn></>
         ) : (
-          <>
-            <Btn variant="secondary" size="sm" onClick={() => setEditing(true)} icon={<Edit2 size={14} />}>Edit</Btn>
-            <Btn variant="danger" size="sm" onClick={deleteProject} disabled={deleting} icon={<Trash2 size={14} />}>{deleting ? 'Deleting...' : 'Delete'}</Btn>
-          </>
+          <><Btn variant="secondary" size="sm" onClick={() => setEditing(true)} icon={<Edit2 size={14} />}>Edit</Btn>
+          <Btn variant="danger" size="sm" onClick={deleteProject} disabled={deleting} icon={<Trash2 size={14} />}>{deleting ? 'Deleting…' : 'Delete'}</Btn></>
         )}
       </div>
 
-      {/* Main Card */}
       <Card style={{ padding: '28px 32px', marginBottom: 20 }}>
         {editing ? (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -120,13 +74,13 @@ export default function ProjectDetail() {
             <Textarea label="Description" value={form.description || ''} onChange={e => setF('description', e.target.value)} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
               <Select label="Priority" value={form.priority} onChange={e => setF('priority', e.target.value)}>
-                {PRIORITIES.map(p => <option key={p} value={p}>{p.charAt(0).toUpperCase() + p.slice(1)}</option>)}
+                {priorities.map(p => <option key={p} value={p}>{pLabel(p)}</option>)}
               </Select>
               <Select label="Status" value={form.status} onChange={e => setF('status', e.target.value)}>
-                {STATUSES.map(s => <option key={s} value={s}>{s.replace('_', ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>)}
+                {statuses.map(s => <option key={s} value={s}>{sLabel(s)}</option>)}
               </Select>
               <Select label="Category" value={form.category} onChange={e => setF('category', e.target.value)}>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}</option>)}
+                {categories.map(c => <option key={c} value={c}>{cLabel(c)}</option>)}
               </Select>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -135,8 +89,7 @@ export default function ProjectDetail() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               <label style={{ fontSize: 13, fontWeight: 500 }}>Progress: {form.progress}%</label>
-              <input type="range" min={0} max={100} value={form.progress} onChange={e => setF('progress', parseInt(e.target.value))}
-                style={{ width: '100%', accentColor: 'var(--amber)' }} />
+              <input type="range" min={0} max={100} value={form.progress} onChange={e => setF('progress', parseInt(e.target.value))} style={{ width: '100%', accentColor: 'var(--amber)' }} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
               <Input label="Start Date" type="date" value={form.start_date || ''} onChange={e => setF('start_date', e.target.value)} />
@@ -149,7 +102,7 @@ export default function ProjectDetail() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20 }}>
               <div>
                 <h1 style={{ fontSize: 30, marginBottom: 6 }}>{project.name}</h1>
-                <p style={{ fontSize: 13, color: 'var(--muted)', textTransform: 'capitalize' }}>{project.category.replace('_', ' ')}</p>
+                <p style={{ fontSize: 13, color: 'var(--muted)' }}>{cLabel(project.category)}</p>
               </div>
               <div style={{ display: 'flex', gap: 8 }}>
                 <Badge type="priority" value={project.priority} size="md" />
@@ -162,7 +115,6 @@ export default function ProjectDetail() {
         )}
       </Card>
 
-      {/* Stats Row */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
         {[
           { icon: DollarSign, label: 'Estimated', val: formatCurrency(project.estimated_cost), color: 'var(--amber)' },
@@ -180,7 +132,6 @@ export default function ProjectDetail() {
         ))}
       </div>
 
-      {/* Materials */}
       <Card style={{ padding: '24px 28px', marginBottom: 20 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
           <Package size={17} color="var(--amber)" />
@@ -196,14 +147,16 @@ export default function ProjectDetail() {
         ) : editing ? (
           <>
             <div style={{ display: 'flex', gap: 8, padding: '0 0 6px', marginBottom: 4, borderBottom: '1px solid var(--border)', fontSize: 11, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-              <span style={{ width: 20 }} />
-              <span style={{ flex: 2 }}>Name</span>
-              <span style={{ flex: 1 }}>Qty</span>
-              <span style={{ flex: 1 }}>Cost</span>
-              <span style={{ width: 28 }} />
+              <span style={{ width: 20 }} /><span style={{ flex: 2 }}>Name</span><span style={{ flex: 1 }}>Qty</span><span style={{ flex: 1 }}>Cost</span><span style={{ width: 28 }} />
             </div>
             {form.materials.map((m, i) => (
-              <MaterialRow key={i} mat={m} index={i} editing onChange={updateMaterial} onDelete={deleteMaterial} />
+              <div key={i} style={{ display: 'flex', gap: 8, padding: '6px 0', alignItems: 'center' }}>
+                <input type="checkbox" checked={m.purchased} onChange={e => updateMaterial(i, 'purchased', e.target.checked)} />
+                <input value={m.name} onChange={e => updateMaterial(i, 'name', e.target.value)} placeholder="Material name" style={{ flex: 2, padding: '5px 8px', border: '1px solid var(--border-dark)', borderRadius: 6, fontSize: 13 }} />
+                <input value={m.quantity} onChange={e => updateMaterial(i, 'quantity', e.target.value)} placeholder="Qty" style={{ flex: 1, padding: '5px 8px', border: '1px solid var(--border-dark)', borderRadius: 6, fontSize: 13 }} />
+                <input type="number" value={m.cost} onChange={e => updateMaterial(i, 'cost', parseFloat(e.target.value) || 0)} placeholder="Cost" style={{ flex: 1, padding: '5px 8px', border: '1px solid var(--border-dark)', borderRadius: 6, fontSize: 13 }} />
+                <button onClick={() => deleteMaterial(i)} style={{ background: 'none', border: 'none', color: 'var(--red)', cursor: 'pointer', padding: 4 }}><X size={16} /></button>
+              </div>
             ))}
           </>
         ) : (
@@ -220,7 +173,6 @@ export default function ProjectDetail() {
         )}
       </Card>
 
-      {/* Notes */}
       {project.notes && !editing && (
         <Card style={{ padding: '24px 28px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>

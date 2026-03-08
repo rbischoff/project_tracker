@@ -1,3 +1,4 @@
+// Static fallbacks (used before config loads or in contexts without ConfigProvider)
 export const PRIORITIES = ['critical', 'high', 'medium', 'low'];
 export const STATUSES = ['planned', 'in_progress', 'on_hold', 'completed'];
 export const CATEGORIES = ['kitchen', 'bathroom', 'bedroom', 'living_room', 'outdoor', 'basement', 'garage', 'roof', 'plumbing', 'electrical', 'flooring', 'painting', 'general'];
@@ -16,17 +17,35 @@ export const STATUS_CONFIG = {
   completed: { label: 'Completed', color: '#3A6B4E', bg: '#E8F4ED' },
 };
 
+// Dynamic Badge — reads from config context if available, falls back to static
+import { useContext } from 'react';
+import { ConfigContext } from '../configContext.js';
+
 export function Badge({ type, value, size = 'sm' }) {
-  const config = type === 'priority' ? PRIORITY_CONFIG[value] : STATUS_CONFIG[value];
-  if (!config) return null;
+  let config;
+  try {
+    const ctx = useContext(ConfigContext);
+    if (ctx && (type === 'priority' ? ctx.priorityConfig : ctx.statusConfig)) {
+      config = type === 'priority' ? ctx.priorityConfig[value] : ctx.statusConfig[value];
+    }
+  } catch (_) {}
+
+  if (!config) {
+    config = type === 'priority' ? PRIORITY_CONFIG[value] : STATUS_CONFIG[value];
+  }
+  if (!config) return (
+    <span style={{ padding: size === 'sm' ? '2px 8px' : '4px 12px', borderRadius: 100, fontSize: size === 'sm' ? 11 : 13, fontWeight: 500, background: '#F0EDEA', color: '#5A5A5A' }}>
+      {value}
+    </span>
+  );
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center', gap: 5,
       padding: size === 'sm' ? '2px 8px' : '4px 12px',
       borderRadius: 100, fontSize: size === 'sm' ? 11 : 13,
-      fontWeight: 500, background: config.bg, color: config.color,
+      fontWeight: 500, background: config.bg || config.bg_color, color: config.color,
     }}>
-      {type === 'priority' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: config.dot, display: 'inline-block' }} />}
+      {type === 'priority' && <span style={{ width: 6, height: 6, borderRadius: '50%', background: config.dot || config.color, display: 'inline-block' }} />}
       {config.label}
     </span>
   );
@@ -43,10 +62,7 @@ export function ProgressBar({ value, height = 6, showLabel = false }) {
         </div>
       )}
       <div style={{ background: 'var(--border)', borderRadius: 100, height, overflow: 'hidden' }}>
-        <div style={{
-          height: '100%', width: `${value}%`, background: color,
-          borderRadius: 100, transition: 'width 0.4s ease',
-        }} />
+        <div style={{ height: '100%', width: `${value}%`, background: color, borderRadius: 100, transition: 'width 0.4s ease' }} />
       </div>
     </div>
   );
@@ -58,14 +74,11 @@ export function Card({ children, style = {}, onClick }) {
       background: 'var(--warm-white)', borderRadius: 'var(--radius-lg)',
       border: '1px solid var(--border)', boxShadow: 'var(--shadow-sm)',
       transition: 'box-shadow 0.15s, transform 0.15s',
-      cursor: onClick ? 'pointer' : 'default',
-      ...style,
+      cursor: onClick ? 'pointer' : 'default', ...style,
     }}
     onMouseEnter={e => { if (onClick) { e.currentTarget.style.boxShadow = 'var(--shadow-md)'; e.currentTarget.style.transform = 'translateY(-1px)'; }}}
     onMouseLeave={e => { if (onClick) { e.currentTarget.style.boxShadow = 'var(--shadow-sm)'; e.currentTarget.style.transform = 'none'; }}}
-    >
-      {children}
-    </div>
+    >{children}</div>
   );
 }
 
@@ -91,10 +104,7 @@ export function Btn({ children, variant = 'primary', size = 'md', onClick, type 
     }}
     onMouseEnter={e => { if (!disabled) e.currentTarget.style.opacity = '0.85'; }}
     onMouseLeave={e => { e.currentTarget.style.opacity = '1'; }}
-    >
-      {icon && icon}
-      {children}
-    </button>
+    >{icon && icon}{children}</button>
   );
 }
 
@@ -105,8 +115,7 @@ export function Input({ label, error, ...props }) {
       <input {...props} style={{
         padding: '9px 12px', borderRadius: 8, fontSize: 14,
         border: `1px solid ${error ? 'var(--red)' : 'var(--border-dark)'}`,
-        background: 'white', color: 'var(--charcoal)', outline: 'none',
-        transition: 'border-color 0.15s',
+        background: 'white', color: 'var(--charcoal)', outline: 'none', transition: 'border-color 0.15s',
         ...props.style,
       }}
       onFocus={e => e.target.style.borderColor = 'var(--amber)'}
@@ -124,11 +133,8 @@ export function Select({ label, children, error, ...props }) {
       <select {...props} style={{
         padding: '9px 12px', borderRadius: 8, fontSize: 14,
         border: `1px solid ${error ? 'var(--red)' : 'var(--border-dark)'}`,
-        background: 'white', color: 'var(--charcoal)', outline: 'none',
-        cursor: 'pointer', ...props.style,
-      }}>
-        {children}
-      </select>
+        background: 'white', color: 'var(--charcoal)', outline: 'none', cursor: 'pointer', ...props.style,
+      }}>{children}</select>
     </div>
   );
 }

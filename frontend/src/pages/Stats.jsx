@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { api } from '../api.js';
-import { Card, formatCurrency } from '../components/UI.jsx';
-import { PRIORITY_CONFIG, STATUS_CONFIG } from '../components/UI.jsx';
+import { Card, formatCurrency } from '../../../components/UI.jsx';
+import { PRIORITY_CONFIG, STATUS_CONFIG } from '../../../components/UI.jsx';
 import { BarChart3, TrendingUp, DollarSign, Layers } from 'lucide-react';
 
 function MiniBar({ label, value, max, color, subLabel }) {
