@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
-import { Card, Badge, ProgressBar, formatCurrency, formatDate, Btn } from '../../../components/UI.jsx';
+import { Card, Badge, ProgressBar, formatCurrency, formatDate, Btn } from '../components/UI.jsx';
 import { PlusCircle, TrendingUp, DollarSign, Clock, CheckCircle2, AlertTriangle } from 'lucide-react';
 
 function StatCard({ icon: Icon, label, value, sub, color = 'var(--amber)' }) {

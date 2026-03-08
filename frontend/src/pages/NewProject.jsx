@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
-import { Card, Btn, Input, Select, Textarea } from '../../../components/UI.jsx';
+import { Card, Btn, Input, Select, Textarea } from '../components/UI.jsx';
 import { useConfig } from '../context.jsx';
 import { ArrowLeft, Plus, X, PlusCircle } from 'lucide-react';
 

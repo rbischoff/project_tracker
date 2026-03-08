@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
-import { Card, Badge, ProgressBar, formatCurrency, formatDate, Btn, Input, Select, Textarea } from '../../../components/UI.jsx';
+import { Card, Badge, ProgressBar, formatCurrency, formatDate, Btn, Input, Select, Textarea } from '../components/UI.jsx';
 import { useConfig } from '../context.jsx';
 import { ArrowLeft, Edit2, Trash2, Check, X, Plus, Package, DollarSign, Calendar, Wrench } from 'lucide-react';
 
