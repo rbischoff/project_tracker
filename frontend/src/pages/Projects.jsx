@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
-import { Card, Badge, ProgressBar, formatCurrency, formatDate, Btn, Select } from '../../../components/UI.jsx';
+import { Card, Badge, ProgressBar, formatCurrency, formatDate, Btn, Select } from '../components/UI.jsx';
 import { useConfig } from '../context.jsx';
 import { PlusCircle, Search, SlidersHorizontal, Layers } from 'lucide-react';
 
