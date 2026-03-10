@@ -79,7 +79,7 @@ export default function Login() {
               <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--graphite)' }}>Username or Email</label>
               <input
                 value={username} onChange={e => setUsername(e.target.value)}
-                placeholder="admin"
+                placeholder=""
                 autoComplete="username" autoFocus
                 style={{
                   padding: '10px 14px', borderRadius: 8, fontSize: 14,
@@ -126,26 +126,6 @@ export default function Login() {
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
-        </div>
-
-        {/* Hint */}
-        <div style={{
-          marginTop: 20, background: 'rgba(255,255,255,0.6)', borderRadius: 10,
-          border: '1px solid var(--border)', padding: '14px 18px',
-        }}>
-          <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6, fontWeight: 500 }}>Default accounts:</p>
-          <div style={{ display: 'flex', gap: 20 }}>
-            {[['admin', 'admin123', 'Admin'], ['user', 'user123', 'User']].map(([u, p, role]) => (
-              <div key={u} style={{ fontSize: 12, color: 'var(--slate)' }}>
-                <span style={{
-                  background: role === 'Admin' ? 'var(--amber-pale)' : 'var(--blue-pale)',
-                  color: role === 'Admin' ? 'var(--amber)' : 'var(--blue)',
-                  padding: '1px 6px', borderRadius: 4, fontSize: 11, fontWeight: 600, marginRight: 6,
-                }}>{role}</span>
-                <span style={{ fontFamily: 'DM Mono' }}>{u} / {p}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>
