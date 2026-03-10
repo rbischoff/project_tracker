@@ -1,6 +1,7 @@
 services:
   backend:
     build: ./backend
+    container_name: project_tracker_backend
     ports:
       - "8001:8000"
     volumes:
@@ -8,21 +9,63 @@ services:
       - /app/__pycache__
     environment:
       - PYTHONUNBUFFERED=1
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=${POSTGRES_DB:-project_tracker}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+    depends_on:
+      postgres:
+        condition: service_healthy
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/docs')"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 15s
+    networks:
+      - project_tracker_net
+    restart: unless-stopped
 
   frontend:
     build: ./frontend
+    container_name: project_tracker_frontend
     ports:
       - "5173:5173"
     volumes:
       - ./frontend:/app
       - /app/node_modules
     environment:
-      - VITE_API_URL=http://localhost:8001
+      - VITE_API_URL=http://backend:8000
     depends_on:
       - backend
+    networks:
+      - project_tracker_net
+    restart: unless-stopped
+
+  postgres:
+    image: postgres:15
+    container_name: project_tracker_postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB:-project_tracker}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - project_tracker_net
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
+networks:
+  project_tracker_net:
+    driver: bridge
