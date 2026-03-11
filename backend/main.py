@@ -20,9 +20,12 @@ load_dotenv()
 
 app = FastAPI(title="Home Improvement Tracker")
 
+# CORS configuration with production URL from environment
+PRODUCTION_URL = os.getenv("PRODUCTION_URL", "https://projects.grovelab.net")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://frontend:5173"],
+    allow_origins=["http://localhost:5173", "http://localhost:3000", "http://frontend:5173", f"{PRODUCTION_URL}"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -153,9 +156,12 @@ class LoginRequest(BaseModel):
 
 @app.post("/auth/login")
 def login(req: LoginRequest, db: Session = Depends(get_db)):
+    # Normalize input - trim whitespace and lowercase for comparison
+    input_value = req.username.strip().lower()
+    
     user = db.query(User).filter(
         and_(
-            (User.username == req.username) | (User.email == req.username),
+            ((User.username.ilike(input_value)) | (User.email.ilike(input_value))),
             User.is_active == 1
         )
     ).first()
@@ -291,7 +297,7 @@ def update_config(config_id: int, item: ConfigUpdate, user: dict = Depends(requi
     config = db.query(Config).filter(Config.id == config_id).first()
     if not config:
         raise HTTPException(404, "Not found")
-    for key, value in item.dict().items():
+    for key, value in item.model_dump().items():
         if value is not None:
             setattr(config, key, value)
     db.commit()
@@ -518,7 +524,7 @@ def create_project(project: ProjectCreate, user: dict = Depends(get_current_user
         estimated_cost=project.estimated_cost,
         actual_cost=project.actual_cost,
         progress=project.progress,
-        materials=json.dumps([m.dict() for m in project.materials]),
+        materials=json.dumps([m.model_dump() for m in project.materials]),
         category=project.category,
         start_date=project.start_date,
         target_date=project.target_date,
@@ -540,10 +546,10 @@ def update_project(project_id: int, project: ProjectUpdate, user: dict = Depends
     if user["role"] != "admin" and db_project.user_id != user["id"]:
         raise HTTPException(403, "Access denied")
     
-    for key, value in project.dict().items():
+    for key, value in project.model_dump().items():
         if value is not None:
             if key == "materials":
-                setattr(db_project, key, json.dumps([m.dict() for m in value]))
+                setattr(db_project, key, json.dumps(value))
             else:
                 setattr(db_project, key, value)
     

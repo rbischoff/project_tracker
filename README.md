@@ -84,23 +84,28 @@ Then open: http://localhost:5173
 
 ## Environment Variables
 
-Configure database and frontend API via environment variables:
+Configure backend, database, and frontend via environment variables:
 
-**Backend (Database):**
+**Backend (Database & CORS):**
 ```env
-POSTGRES_HOST=postgres         # Database host
-POSTGRES_PORT=5432             # Database port
-POSTGRES_DB=project_tracker    # Database name
-POSTGRES_USER=postgres         # Database user
-POSTGRES_PASSWORD=postgres     # Database password
+POSTGRES_HOST=postgres               # Database host
+POSTGRES_PORT=5432                   # Database port
+POSTGRES_DB=project_tracker          # Database name
+POSTGRES_USER=postgres               # Database user
+POSTGRES_PASSWORD=postgres           # Database password
+PRODUCTION_URL=https://example.com   # Production URL for CORS origins
 ```
 
-**Frontend (API Configuration):**
+**Frontend (Assets & Configuration):**
 ```env
-VITE_API_URL=http://backend:8000   # Backend API URL (use service name in Docker)
+VITE_FAVICON_PATH=/favicon.ico       # Path to favicon (in public folder)
+VITE_LOGO_PATH=/logo.png             # Path to logo (in public folder, used in sidebar and login)
 ```
 
-In development on localhost, `VITE_API_URL` defaults to `/api` (proxy), which works automatically.
+**Notes:**
+- Store favicon and logo files in the `frontend/public/` directory
+- Update `.env` file to customize these paths for different environments
+- All environment variables have sensible defaults if not specified
 
 ## API Endpoints
 
@@ -202,3 +207,5 @@ Example error response:
 - ✅ **Unique Constraints** – Database-level enforcement on config items
 - ✅ **Docker API URL** – Proper service discovery for containerized deployments
 - ✅ **Logout Validation** – Token verification before session deletion
+- ✅ **Configurable Assets** – Favicon and logo paths via environment variables
+- ✅ **Production CORS** – Production URL configurable via environment variables

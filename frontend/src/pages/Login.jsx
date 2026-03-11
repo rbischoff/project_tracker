@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context.jsx';
-import { Hammer, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { branding } from '../config.js';
 
 export default function Login() {
   const { login } = useAuth();
@@ -39,17 +40,20 @@ export default function Login() {
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 420 }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            background: 'var(--graphite)', borderRadius: 16, padding: '14px 16px',
-            marginBottom: 16, boxShadow: 'var(--shadow-md)',
-          }}>
-            <Hammer size={28} color="var(--amber-light)" />
-          </div>
+          <img src={branding.loginLogo} alt="Logo" style={{ 
+            width: 120, 
+            height: 120,
+            borderRadius: 16,
+            marginBottom: 16,
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            boxShadow: 'var(--shadow-md)',
+            display: 'block'
+          }} />
           <h1 style={{ fontSize: 32, fontFamily: 'DM Serif Display', color: 'var(--charcoal)', marginBottom: 4 }}>
-            Home Projects
+            {branding.title}
           </h1>
-          <p style={{ color: 'var(--muted)', fontSize: 14 }}>Track your home improvement journey</p>
+          <p style={{ color: 'var(--muted)', fontSize: 14 }}>{branding.subtitle}</p>
         </div>
 
         {/* Card */}

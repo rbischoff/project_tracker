@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, NavLink, useLocation, Navigate } from 'react-router-dom';
-import { Home, FolderKanban, PlusCircle, BarChart3, Menu, X, Hammer, Shield, LogOut, ChevronDown } from 'lucide-react';
+import { BrowserRouter, Routes, Route, Link, useLocation, Navigate } from 'react-router-dom';
+import { Home, FolderKanban, PlusCircle, BarChart3, Menu, X, Shield, LogOut, ChevronDown } from 'lucide-react';
+import { branding } from './config';
 import { AuthProvider, ConfigProvider, useAuth, useConfig } from './context.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import Projects from './pages/Projects.jsx';
@@ -9,6 +10,8 @@ import NewProject from './pages/NewProject.jsx';
 import Stats from './pages/Stats.jsx';
 import Login from './pages/Login.jsx';
 import Admin from './pages/Admin.jsx';
+
+const logoSrc = branding.sidebarLogo;
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth();
@@ -85,6 +88,26 @@ function Nav({ open, setOpen }) {
     ...(user?.role === 'admin' ? [{ to: '/admin', icon: Shield, label: 'Admin' }] : []),
   ];
 
+  // Determine active link based on current path
+  const isActive = (path) => {
+    const pathname = location.pathname;
+    if (path === '/') return pathname === '/' || pathname === '';
+    if (path === '/projects') return pathname === '/projects' || pathname.startsWith('/projects/');
+    return pathname === path;
+  };
+
+  // Debug helper - remove after testing
+  const getActivePath = () => {
+    for (const link of links) {
+      if (isActive(link.to)) return link.to;
+    }
+    return 'none';
+  };
+
+  useEffect(() => {
+    console.log('Pathname:', location.pathname, '| Active:', getActivePath());
+  }, [location.pathname]);
+
   return (
     <>
       {open && <div style={{ position: 'fixed', inset: 0, background: 'rgba(28,28,28,0.4)', zIndex: 40 }} onClick={() => setOpen(false)} />}
@@ -99,31 +122,33 @@ function Nav({ open, setOpen }) {
         `}</style>
 
         <div style={{ padding: '28px 20px 24px', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <div style={{ background: 'var(--amber)', borderRadius: 8, padding: '6px 8px', display: 'flex' }}>
-              <Hammer size={18} color="white" />
-            </div>
-            <div>
-              <div style={{ fontFamily: 'DM Serif Display', color: 'white', fontSize: 16, lineHeight: 1.2 }}>Home</div>
-              <div style={{ fontFamily: 'DM Serif Display', color: 'var(--amber-light)', fontSize: 16, lineHeight: 1.2 }}>Projects</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            <img src={logoSrc} alt="Logo" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'contain', flexShrink: 0 }} />
+            <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+              <div style={{ fontFamily: 'DM Serif Display', color: 'white', fontSize: 16, lineHeight: 1.2, whiteSpace: 'nowrap' }}>Home</div>
+              <div style={{ fontFamily: 'DM Serif Display', color: 'var(--amber-light)', fontSize: 16, lineHeight: 1.2, whiteSpace: 'nowrap' }}>Projects</div>
             </div>
           </div>
         </div>
 
         <div style={{ flex: 1, padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 4, overflowY: 'auto' }}>
-          {links.map(({ to, icon: Icon, label }) => (
-            <NavLink key={to} to={to} end={to === '/'} style={({ isActive }) => ({
-              display: 'flex', alignItems: 'center', gap: 10,
-              padding: '10px 12px', borderRadius: 8, textDecoration: 'none',
-              color: isActive ? 'white' : 'rgba(255,255,255,0.55)',
-              background: isActive ? 'rgba(193,123,46,0.25)' : 'transparent',
-              fontWeight: isActive ? 500 : 400, fontSize: 14,
-              transition: 'all 0.15s',
-              borderLeft: isActive ? '3px solid var(--amber)' : '3px solid transparent',
-            })}>
-              <Icon size={17} /> {label}
-            </NavLink>
-          ))}
+          {links.map(({ to, icon: Icon, label }) => {
+            const active = isActive(to);
+            return (
+              <Link key={to} to={to} style={{
+                display: 'flex', alignItems: 'center', gap: 10,
+                padding: '10px 12px', borderRadius: 8, textDecoration: 'none',
+                color: active ? 'white' : 'rgba(255,255,255,0.55)',
+                background: active ? 'rgba(193,123,46,0.25)' : 'transparent',
+                fontWeight: active ? 500 : 400, fontSize: 14,
+                transition: 'all 0.15s',
+                borderLeft: active ? '3px solid var(--amber)' : '3px solid transparent',
+                cursor: 'pointer',
+              }}>
+                <Icon size={17} /> {label}
+              </Link>
+            );
+          })}
         </div>
 
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: 12, paddingBottom: 16 }}>

@@ -24,7 +24,7 @@ services:
       retries: 5
       start_period: 15s
     networks:
-      - project_tracker_net
+      - npm
     restart: unless-stopped
 
   frontend:
@@ -35,12 +35,10 @@ services:
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    environment:
-      - VITE_API_URL=http://backend:8000
     depends_on:
       - backend
     networks:
-      - project_tracker_net
+      - npm
     restart: unless-stopped
 
   postgres:
@@ -60,12 +58,12 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - project_tracker_net
+      - npm
     restart: unless-stopped
 
 volumes:
   postgres_data:
 
 networks:
-  project_tracker_net:
-    driver: bridge
+  npm:
+    external: true

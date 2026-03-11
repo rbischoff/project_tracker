@@ -20,15 +20,28 @@ export default function ProjectDetail() {
 
   const save = async () => {
     setSaving(true);
-    const updated = await api.updateProject(id, form);
-    setProject(updated); setForm(updated); setSaving(false); setEditing(false);
+    try {
+      const updated = await api.updateProject(id, form);
+      setProject(updated); setForm(updated); setEditing(false);
+    } catch (err) {
+      console.error('Save failed:', err);
+      alert('Failed to save: ' + err.message);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const deleteProject = async () => {
     if (!confirm('Delete this project?')) return;
     setDeleting(true);
-    await api.deleteProject(id);
-    navigate('/projects');
+    try {
+      await api.deleteProject(id);
+      navigate('/projects');
+    } catch (err) {
+      console.error('Delete failed:', err);
+      alert('Failed to delete: ' + err.message);
+      setDeleting(false);
+    }
   };
 
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }));
@@ -39,8 +52,13 @@ export default function ProjectDetail() {
   const toggleMaterialPurchased = async (i) => {
     const mats = [...project.materials];
     mats[i] = { ...mats[i], purchased: !mats[i].purchased };
-    const updated = await api.updateProject(id, { materials: mats });
-    setProject(updated); setForm(updated);
+    try {
+      const updated = await api.updateProject(id, { materials: mats });
+      setProject(updated); setForm(updated);
+    } catch (err) {
+      console.error('Update failed:', err);
+      alert('Failed to update: ' + err.message);
+    }
   };
 
   const pLabel = (k) => priorityConfig[k]?.label || k;
