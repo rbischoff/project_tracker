@@ -1,10 +1,11 @@
-const BASE = '/api';
+const BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}` : '/api';
 
 function getToken() { return localStorage.getItem('hit_token'); }
 
 async function request(path, options = {}) {
   const token = getToken();
   const res = await fetch(`${BASE}${path}`, {
+    credentials: 'include',  // Include cookies automatically
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context.jsx';
-import { Hammer, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { branding } from '../config.js';
 
 export default function Login() {
   const { login } = useAuth();
@@ -39,17 +40,20 @@ export default function Login() {
       <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 420 }}>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
-            background: 'var(--graphite)', borderRadius: 16, padding: '14px 16px',
-            marginBottom: 16, boxShadow: 'var(--shadow-md)',
-          }}>
-            <Hammer size={28} color="var(--amber-light)" />
-          </div>
+          <img src={branding.loginLogo} alt="Logo" style={{ 
+            width: 120, 
+            height: 120,
+            borderRadius: 16,
+            marginBottom: 16,
+            marginLeft: 'auto',
+            marginRight: 'auto',
+            boxShadow: 'var(--shadow-md)',
+            display: 'block'
+          }} />
           <h1 style={{ fontSize: 32, fontFamily: 'DM Serif Display', color: 'var(--charcoal)', marginBottom: 4 }}>
-            Home Projects
+            {branding.title}
           </h1>
-          <p style={{ color: 'var(--muted)', fontSize: 14 }}>Track your home improvement journey</p>
+          <p style={{ color: 'var(--muted)', fontSize: 14 }}>{branding.subtitle}</p>
         </div>
 
         {/* Card */}
@@ -79,7 +83,7 @@ export default function Login() {
               <label style={{ fontSize: 13, fontWeight: 500, color: 'var(--graphite)' }}>Username or Email</label>
               <input
                 value={username} onChange={e => setUsername(e.target.value)}
-                placeholder="admin"
+                placeholder=""
                 autoComplete="username" autoFocus
                 style={{
                   padding: '10px 14px', borderRadius: 8, fontSize: 14,
@@ -126,26 +130,6 @@ export default function Login() {
               {loading ? 'Signing in…' : 'Sign In'}
             </button>
           </form>
-        </div>
-
-        {/* Hint */}
-        <div style={{
-          marginTop: 20, background: 'rgba(255,255,255,0.6)', borderRadius: 10,
-          border: '1px solid var(--border)', padding: '14px 18px',
-        }}>
-          <p style={{ fontSize: 12, color: 'var(--muted)', marginBottom: 6, fontWeight: 500 }}>Default accounts:</p>
-          <div style={{ display: 'flex', gap: 20 }}>
-            {[['admin', 'admin123', 'Admin'], ['user', 'user123', 'User']].map(([u, p, role]) => (
-              <div key={u} style={{ fontSize: 12, color: 'var(--slate)' }}>
-                <span style={{
-                  background: role === 'Admin' ? 'var(--amber-pale)' : 'var(--blue-pale)',
-                  color: role === 'Admin' ? 'var(--amber)' : 'var(--blue)',
-                  padding: '1px 6px', borderRadius: 4, fontSize: 11, fontWeight: 600, marginRight: 6,
-                }}>{role}</span>
-                <span style={{ fontFamily: 'DM Mono' }}>{u} / {p}</span>
-              </div>
-            ))}
-          </div>
         </div>
       </div>
     </div>

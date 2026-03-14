@@ -6,33 +6,47 @@ const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(() => localStorage.getItem('hit_token'));
+  const [token, setToken] = useState(() => localStorage.getItem('hit_token'));  // Keep for legacy support
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (token) {
-      fetch('/api/auth/me', { headers: { Authorization: `Bearer ${token}` } })
-        .then(r => { if (r.ok) return r.json(); throw new Error(); })
-        .then(u => setUser(u))
-        .catch(() => { localStorage.removeItem('hit_token'); setToken(null); })
-        .finally(() => setLoading(false));
-    } else { setLoading(false); }
+    // Check authentication status via /auth/me endpoint (cookie will be sent automatically)
+    fetch('/api/auth/me', { 
+      credentials: 'include',
+      headers: { Authorization: token ? `Bearer ${token}` : undefined }
+    })
+      .then(r => { if (r.ok) return r.json(); throw new Error(); })
+      .then(u => setUser(u))
+      .catch(() => { localStorage.removeItem('hit_token'); setToken(null); })
+      .finally(() => setLoading(false));
   }, []);
 
   const login = async (username, password) => {
     const res = await fetch('/api/auth/login', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, password }),
     });
     if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Login failed'); }
     const data = await res.json();
-    localStorage.setItem('hit_token', data.token);
-    setToken(data.token); setUser(data.user);
+    // Token is now in httpOnly cookie, but we still store it for backwards compatibility
+    if (data.token) {
+      localStorage.setItem('hit_token', data.token);
+      setToken(data.token);
+    }
+    setUser(data.user);
     return data.user;
   };
 
   const logout = async () => {
-    if (token) fetch('/api/auth/logout', { method: 'POST', headers: { Authorization: `Bearer ${token}` } }).catch(() => {});
+    if (token) {
+      fetch('/api/auth/logout', { 
+        method: 'POST',
+        credentials: 'include',
+        headers: { Authorization: `Bearer ${token}` }
+      }).catch(() => {});
+    }
     localStorage.removeItem('hit_token'); setToken(null); setUser(null);
   };
 
